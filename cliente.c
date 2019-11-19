@@ -19,12 +19,10 @@ struct player
 int main(int argc , char *argv[])
 {
 	struct player p = malloc(sizeof(player));
-	p.x = 3;
-	p.y = 4;
-	p.id = 2;
 	int descriptor_socket;
 	struct sockaddr_in server;
-	char * mensaje , respuesta_server[2000];
+	char * mensaje;
+	void * respuesta_server;
 
 	/*
 	CREA un socket
@@ -55,7 +53,7 @@ int main(int argc , char *argv[])
 	Enviar datos al server
 	*/
 	mensaje = "Fer fue tocado";
-	if( send(descriptor_socket , &p , strlen(mensaje) , 0) < 0)
+	if( send(descriptor_socket , mensaje , strlen(mensaje) , 0) < 0)
 	{
 		puts("FALLA AL ENVIAR");
 		return 1;
@@ -71,7 +69,9 @@ int main(int argc , char *argv[])
 		puts("FALLA EN LA RECEPCION");
 	}
 	puts("DATOS RECIBIDOS\n");
-	puts(respuesta_server);
+	
+	p = (struct player) *respuesta_server;
+	printf("id: %d x: %d y: %d", p.id, p.x, p.y);
 
 	return 0;
 }

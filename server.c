@@ -7,8 +7,19 @@ Librerías:
 #include<arpa/inet.h>   
 #include<unistd.h>      
 
+struct player
+{
+        int id;
+        int x;
+        int y;
+} typedef Player;
+
 int main(int argc , char *argv[])
 {
+        struct player p = malloc(sizeof(player));
+        p.x = 3;
+	p.y = 4;
+	p.id = 2;
         int descriptor_socket , nuevo_socket , c;
         struct sockaddr_in server , client;
         char * mensaje;
@@ -66,7 +77,7 @@ int main(int argc , char *argv[])
             puts("Error en el mensaje del cliente");
             return -1;
           }
-          puts(mensaje_cliente);
+          printf(mensaje_cliente);
 
           /*
           RESPUESTA AL CLIENTE

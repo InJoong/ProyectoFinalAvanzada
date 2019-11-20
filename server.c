@@ -2,6 +2,8 @@
 Librerías:
 */
 #include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
 #include<string.h>
 #include<sys/socket.h>
 #include<arpa/inet.h>   
@@ -9,17 +11,21 @@ Librerías:
 
 struct player
 {
-        int id;
-        int x;
-        int y;
-} typedef Player;
+	int id;
+	int x;
+	int y;
+};
 
 int main(int argc , char *argv[])
 {
-        struct player p = malloc(sizeof(player));
-        p.x = 3;
-	p.y = 4;
-	p.id = 2;
+        struct player plyr;
+	plyr.id = 1;
+	plyr.x = 5;
+	plyr.y = 7;
+	
+	struct player * ptrp = malloc(sizeof(struct player));
+        ptrp = &plyr;
+        
         int descriptor_socket , nuevo_socket , c;
         struct sockaddr_in server , client;
         char * mensaje;
@@ -72,18 +78,20 @@ int main(int argc , char *argv[])
           }
 
           puts("CONEXION ACEPTADA");
-          char mensaje_cliente[2000];
-          if(recv(nuevo_socket , mensaje_cliente , 2000 , 0) < 0){
+          struct player *rev_player = malloc(sizeof(struct player));
+          if(recv(nuevo_socket , rev_player , sizeof(struct player), 0) < 0){
             puts("Error en el mensaje del cliente");
             return -1;
           }
-          printf(mensaje_cliente);
+          printf("id: %d\n", rev_player->id);
 
           /*
           RESPUESTA AL CLIENTE
           */
-          mensaje = "HOLA....desde el server PUM...\n";
-          write(nuevo_socket , mensaje , strlen(mensaje));
+          if(write(nuevo_socket, ptrp, sizeof(struct player)) < 0)
+          {
+            puts("Error en el envio");
+          }
         }
         return 0;
 }

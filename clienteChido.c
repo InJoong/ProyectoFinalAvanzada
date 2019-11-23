@@ -349,6 +349,9 @@ int main(int argc, char * argv[]){
 	
 	pthread_t hiloDos_id;
 	pthread_t hiloTres_id;
+	pthread_t hiloEscuchador_id;
+	
+	pthread_create(&hiloEscuchador_id, NULL, escuchador, NULL);
 	
 	
 	pthread_create(&hiloTres_id, NULL, inicializarMapa, NULL);

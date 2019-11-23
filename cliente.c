@@ -40,7 +40,7 @@ int main(int argc , char *argv[])
 		return 1;
 	}
 
-	server.sin_addr.s_addr = inet_addr("10.48.149.187");
+	server.sin_addr.s_addr = inet_addr("10.48.193.25");
 	server.sin_family = AF_INET;
 	server.sin_port = htons( 8007 );
 

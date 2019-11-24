@@ -62,6 +62,11 @@ void serializador(struct Personaje * persona, char serializado[]){
 }
 
 void deserializador(char personajeSerializado[], struct Personaje * recipiente){
+	pthread_mutex_lock(&lockParaDibujar);
+	move(10, 51);
+			printw(personajeSerializado);
+			refresh();
+			pthread_mutex_unlock(&lockParaDibujar);
 	recipiente->id = personajeSerializado[0] - 48;
 	recipiente->xPosition = ((personajeSerializado[1] - 48) * 10) + (personajeSerializado[2] - 48);
 	recipiente->yPosition = ((personajeSerializado[3] - 48) * 10) + (personajeSerializado[4] - 48);
@@ -98,6 +103,7 @@ void * escuchador(void * vargs){
 			personajes[idExterno].xPosition = info_jugador->xPosition;
 			personajes[idExterno].yPosition = info_jugador->yPosition;
 			mvaddch(personajes[idExterno].xPosition, personajes[idExterno].yPosition, personajes[idExterno].c);
+			//refresh();
 			pthread_mutex_unlock(&lockParaDibujar);
 			
 			free(info_jugador);
@@ -224,7 +230,7 @@ int main(int argc, char * argv[]){
 	
 	miServer.sin_family = AF_INET;
 	miServer.sin_addr.s_addr = INADDR_ANY;
-	miServer.sin_port = htons(6666);
+	miServer.sin_port = htons(8081);
 	
 	if(bind(miServerSocket, (struct sockaddr *)&miServer, sizeof(miServer) ) < 0 ) {
 		printw("1");
@@ -246,7 +252,7 @@ int main(int argc, char * argv[]){
 	
 	serverHermano1.sin_addr.s_addr = inet_addr(ips->ip1);
 	serverHermano1.sin_family = AF_INET;
-	serverHermano1.sin_port = htons(6666);
+	serverHermano1.sin_port = htons(8081);
 	
 	if(connect(socketHermano1, (struct sockaddr *)&serverHermano1, sizeof(serverHermano1) ) < 0){
 		printw("3");
@@ -266,7 +272,7 @@ int main(int argc, char * argv[]){
 	
 	serverHermano2.sin_addr.s_addr = inet_addr(ips->ip2);
 	serverHermano2.sin_family = AF_INET;
-	serverHermano2.sin_port = htons(6666);
+	serverHermano2.sin_port = htons(8081);
 	
 	if(connect(socketHermano2, (struct sockaddr *)&serverHermano2, sizeof(serverHermano2) ) < 0){
 		printw("5");

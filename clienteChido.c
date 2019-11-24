@@ -388,12 +388,12 @@ int main(int argc, char * argv[]){
 	
 	pthread_create(&hiloTres_id, NULL, inicializarMapa, NULL);
 	pthread_join(hiloTres_id, &salida_funcion);
-	while(1){
-		
+	while(1){	
 		pthread_create(&hiloEscuchador_id, NULL, escuchador, NULL);
-		pthread_join(hiloEscuchador_id, &salida_funcion);
+		
 		pthread_create(&hiloDos_id, NULL, moverseLocal, NULL);
 		pthread_join(hiloDos_id, &salida_funcion);
+		pthread_join(hiloEscuchador_id, &salida_funcion);
 	}
 	
 	

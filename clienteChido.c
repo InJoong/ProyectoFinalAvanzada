@@ -92,18 +92,19 @@ void * llamador(void * vargs){
 
 void * escuchador(void * vargs){
 	void * salida;
-	while(1){
+	//while(1){
 		int c = sizeof(struct sockaddr_in);
 		while((nuevoSocketServer = accept(miServerSocket, (struct sockaddr *)&clienteTemporal, (socklen_t *)&c))){
 			if(nuevoSocketServer < 0){
 			}
 			
 			struct Personaje * info_jugador = malloc(sizeof(struct Personaje));
-			char * mensaje = "112218";
-			printw("%s", mensaje);
+			char mensaje[7];
 			
-			if(recv(nuevoSocketServer, mensaje, sizeof(char)*7, 0) < 0){
-				//continue;
+			
+			if(recv(nuevoSocketServer, mensaje, 7, 0) < 0){
+				move(10, 51);
+				printw("%s", ":(");
 			} else {
 			
 			pthread_mutex_lock(&lockParaDibujar);
@@ -132,7 +133,9 @@ void * escuchador(void * vargs){
 	//Personaje
 	//Ubica la ip
 	//Dibuja al wey basnadose en quien lo mando 
-	}
+	//}
+	
+	pthread_exit( salida ); 
 	
 }
 
@@ -245,7 +248,7 @@ int main(int argc, char * argv[]){
 	ips->ip2 = argv[2];
 	
 	//Conexion server propio
-	miServerSocket = socket(AF_INET, SOCK_STREAM, 0);
+	miServerSocket = socket(AF_INET, SOCK_DGRAM, 0);
 	if(miServerSocket == -1){
 		endwin();
 		exit(1);
@@ -253,7 +256,7 @@ int main(int argc, char * argv[]){
 	
 	miServer.sin_family = AF_INET;
 	miServer.sin_addr.s_addr = INADDR_ANY;
-	miServer.sin_port = htons(8082);
+	miServer.sin_port = htons(8081);
 	
 	if(bind(miServerSocket, (struct sockaddr *)&miServer, sizeof(miServer) ) < 0 ) {
 		printw("1");
@@ -265,7 +268,7 @@ int main(int argc, char * argv[]){
 	listen(miServerSocket, 3);
 	
 	//Conexion Hermano 1
-	socketHermano1 = socket(AF_INET, SOCK_STREAM, 0);
+	socketHermano1 = socket(AF_INET, SOCK_DGRAM, 0);
 	if(socketHermano1 == -1){
 		printw("2");
 		getch();
@@ -275,7 +278,7 @@ int main(int argc, char * argv[]){
 	
 	serverHermano1.sin_addr.s_addr = inet_addr(ips->ip1);
 	serverHermano1.sin_family = AF_INET;
-	serverHermano1.sin_port = htons(8083);
+	serverHermano1.sin_port = htons(8081);
 	
 	if(connect(socketHermano1, (struct sockaddr *)&serverHermano1, sizeof(serverHermano1) ) < 0){
 		printw("3");
@@ -285,7 +288,7 @@ int main(int argc, char * argv[]){
 	}
 	
 	//Conexion Hermano 2 
-	socketHermano2 = socket(AF_INET, SOCK_STREAM, 0);
+	socketHermano2 = socket(AF_INET, SOCK_DGRAM, 0);
 	if(socketHermano2 == -1){
 		printw("4");
 		getch();
@@ -380,15 +383,19 @@ int main(int argc, char * argv[]){
 	pthread_t hiloTres_id;
 	pthread_t hiloEscuchador_id;
 	
-	pthread_create(&hiloEscuchador_id, NULL, escuchador, NULL);
+	
 	
 	
 	pthread_create(&hiloTres_id, NULL, inicializarMapa, NULL);
+	pthread_join(hiloTres_id, &salida_funcion);
 	while(1){
+		
+		pthread_create(&hiloEscuchador_id, NULL, escuchador, NULL);
+		pthread_join(hiloEscuchador_id, &salida_funcion);
 		pthread_create(&hiloDos_id, NULL, moverseLocal, NULL);
 		pthread_join(hiloDos_id, &salida_funcion);
 	}
-	pthread_join(hiloTres_id, &salida_funcion);
+	
 	
 	
 	getch();

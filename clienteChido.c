@@ -100,6 +100,7 @@ void * escuchador(void * vargs){
 			
 			struct Personaje * info_jugador = malloc(sizeof(struct Personaje));
 			char * mensaje = "112218";
+			printw("%s", mensaje);
 			
 			if(recv(nuevoSocketServer, mensaje, sizeof(char)*7, 0) < 0){
 				//continue;
@@ -244,7 +245,7 @@ int main(int argc, char * argv[]){
 	ips->ip2 = argv[2];
 	
 	//Conexion server propio
-	miServerSocket = socket(AF_INET, SOCK_DGRAM, 0);
+	miServerSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if(miServerSocket == -1){
 		endwin();
 		exit(1);
@@ -264,7 +265,7 @@ int main(int argc, char * argv[]){
 	listen(miServerSocket, 3);
 	
 	//Conexion Hermano 1
-	socketHermano1 = socket(AF_INET, SOCK_DGRAM, 0);
+	socketHermano1 = socket(AF_INET, SOCK_STREAM, 0);
 	if(socketHermano1 == -1){
 		printw("2");
 		getch();
@@ -284,7 +285,7 @@ int main(int argc, char * argv[]){
 	}
 	
 	//Conexion Hermano 2 
-	socketHermano2 = socket(AF_INET, SOCK_DGRAM, 0);
+	socketHermano2 = socket(AF_INET, SOCK_STREAM, 0);
 	if(socketHermano2 == -1){
 		printw("4");
 		getch();

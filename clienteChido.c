@@ -92,17 +92,14 @@ void * llamador(void * vargs){
 
 void * escuchador(void * vargs){
 	void * salida;
-	//while(1){
+	while(1){
 		int c = sizeof(struct sockaddr_in);
-		while((nuevoSocketServer = accept(miServerSocket, (struct sockaddr *)&clienteTemporal, (socklen_t *)&c))){
-			if(nuevoSocketServer < 0){
-			}
 			
 			struct Personaje * info_jugador = malloc(sizeof(struct Personaje));
 			char mensaje[7];
 			
 			
-			if(recv(nuevoSocketServer, mensaje, 7, 0) < 0){
+			if(recv(miServerSocket, mensaje, 7, 0) < 0){
 				move(10, 51);
 				printw("%s", ":(");
 			} else {
@@ -125,7 +122,7 @@ void * escuchador(void * vargs){
 			mvaddch(personajes[idExterno].xPosition, personajes[idExterno].yPosition, personajes[idExterno].c);
 			refresh();
 			pthread_mutex_unlock(&lockParaDibujar);
-		}
+		
 			free(info_jugador);
 		
 		}
@@ -133,7 +130,7 @@ void * escuchador(void * vargs){
 	//Personaje
 	//Ubica la ip
 	//Dibuja al wey basnadose en quien lo mando 
-	//}
+	}
 	
 	pthread_exit( salida ); 
 	
@@ -388,14 +385,16 @@ int main(int argc, char * argv[]){
 	
 	pthread_create(&hiloTres_id, NULL, inicializarMapa, NULL);
 	pthread_join(hiloTres_id, &salida_funcion);
+	pthread_create(&hiloEscuchador_id, NULL, escuchador, NULL);
+	
 	while(1){	
-		pthread_create(&hiloEscuchador_id, NULL, escuchador, NULL);
+		
 		
 		pthread_create(&hiloDos_id, NULL, moverseLocal, NULL);
 		pthread_join(hiloDos_id, &salida_funcion);
-		pthread_join(hiloEscuchador_id, &salida_funcion);
+		
 	}
-	
+	pthread_join(hiloEscuchador_id, &salida_funcion);
 	
 	
 	getch();

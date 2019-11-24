@@ -66,19 +66,19 @@ void serializador(struct Personaje * persona, char serializado[]){
 }
 
 void deserializador(char personajeSerializado[], struct Personaje * recipiente){
-		pthread_mutex_lock(&lockParaDibujar);
+		/*pthread_mutex_lock(&lockParaDibujar);
 	move(10, 51);
 			//printw("%s", personajeSerializado);
-			/*move(11, 51);
-			printw("%d", serializado[0]);*/
+			move(11, 51);
+			printw("%d", serializado[0]);
 			refresh();
-			pthread_mutex_unlock(&lockParaDibujar);
+			pthread_mutex_unlock(&lockParaDibujar);*/
 			
 			
-	/*recipiente->id = personajeSerializado[0] - 48;
+	recipiente->id = personajeSerializado[0] - 48;
 	recipiente->xPosition = ((personajeSerializado[1] - 48) * 10) + (personajeSerializado[2] - 48);
 	recipiente->yPosition = ((personajeSerializado[3] - 48) * 10) + (personajeSerializado[4] - 48);
-	recipiente->c = personajeSerializado[5];*/
+	recipiente->c = personajeSerializado[5];
 }
 
 struct Personaje personajes[3];

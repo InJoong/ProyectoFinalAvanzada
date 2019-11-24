@@ -59,18 +59,26 @@ void serializador(struct Personaje * persona, char serializado[]){
 	
 	serializado[5] = persona->c;
 	
+	serializado[6] = '\0';
+	
+
+	
 }
 
 void deserializador(char personajeSerializado[], struct Personaje * recipiente){
-	pthread_mutex_lock(&lockParaDibujar);
+		pthread_mutex_lock(&lockParaDibujar);
 	move(10, 51);
-			printw(personajeSerializado);
+			//printw("%s", personajeSerializado);
+			/*move(11, 51);
+			printw("%d", serializado[0]);*/
 			refresh();
 			pthread_mutex_unlock(&lockParaDibujar);
-	recipiente->id = personajeSerializado[0] - 48;
+			
+			
+	/*recipiente->id = personajeSerializado[0] - 48;
 	recipiente->xPosition = ((personajeSerializado[1] - 48) * 10) + (personajeSerializado[2] - 48);
 	recipiente->yPosition = ((personajeSerializado[3] - 48) * 10) + (personajeSerializado[4] - 48);
-	recipiente->c = personajeSerializado[5];
+	recipiente->c = personajeSerializado[5];*/
 }
 
 struct Personaje personajes[3];
@@ -91,22 +99,33 @@ void * escuchador(void * vargs){
 			}
 			
 			struct Personaje * info_jugador = malloc(sizeof(struct Personaje));
-			char mensaje[6];
+			char * mensaje = "112218";
 			
-			if(recv(nuevoSocketServer, mensaje, sizeof(mensaje), 0) < 0){
-			}
+			if(recv(nuevoSocketServer, mensaje, sizeof(char)*7, 0) < 0){
+				//continue;
+			} else {
+			
+			pthread_mutex_lock(&lockParaDibujar);
+			move(10, 51);
+			printw("%s", mensaje);
+			/*move(11, 51);
+			printw("%d", serializado[0]);*/
+			refresh();
+			pthread_mutex_unlock(&lockParaDibujar);
 			
 			deserializador(mensaje, info_jugador);
+			
 			int idExterno = info_jugador->id;
 			pthread_mutex_lock(&lockParaDibujar);
 			mvaddch(personajes[idExterno].xPosition, personajes[idExterno].yPosition, ' ');	
 			personajes[idExterno].xPosition = info_jugador->xPosition;
 			personajes[idExterno].yPosition = info_jugador->yPosition;
 			mvaddch(personajes[idExterno].xPosition, personajes[idExterno].yPosition, personajes[idExterno].c);
-			//refresh();
+			refresh();
 			pthread_mutex_unlock(&lockParaDibujar);
-			
+		}
 			free(info_jugador);
+		
 		}
 	//Otros le hablan
 	//Personaje
@@ -163,10 +182,13 @@ void * moverseLocal(void * vargs){
 			break;
 	}
 	
-	char infoAEnviar[6];
+	char infoAEnviar[7];
+	
+	
 	serializador(&personajes[miId], infoAEnviar);
 	
 	send(socketHermano1, infoAEnviar,sizeof(infoAEnviar), 0);
+	
 	//LLAMAR AL QUE LLAMA
 	refresh();
 	
@@ -230,7 +252,7 @@ int main(int argc, char * argv[]){
 	
 	miServer.sin_family = AF_INET;
 	miServer.sin_addr.s_addr = INADDR_ANY;
-	miServer.sin_port = htons(8081);
+	miServer.sin_port = htons(8082);
 	
 	if(bind(miServerSocket, (struct sockaddr *)&miServer, sizeof(miServer) ) < 0 ) {
 		printw("1");
@@ -252,7 +274,7 @@ int main(int argc, char * argv[]){
 	
 	serverHermano1.sin_addr.s_addr = inet_addr(ips->ip1);
 	serverHermano1.sin_family = AF_INET;
-	serverHermano1.sin_port = htons(8081);
+	serverHermano1.sin_port = htons(8083);
 	
 	if(connect(socketHermano1, (struct sockaddr *)&serverHermano1, sizeof(serverHermano1) ) < 0){
 		printw("3");

@@ -7,200 +7,10 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <time.h>
+#include <wiringPi.h>
 
-
-int miId = 0;
-//Eston son socket de los clientes
-int socketHermano1, socketHermano2; //Descriptor_socket
-struct sockaddr_in serverHermano1, serverHermano2; //server
-
-//Estos son el server del host
-int miServerSocket, nuevoSocketServer; //Descriptor_socket, nuevo_socket
-struct sockaddr_in miServer, clienteTemporal; //server, client
-
-pthread_mutex_t lockParaDibujar;
-
-
-struct IPContainer{
-	char * ip1;
-	char * ip2;	
-};
-
-struct IPContainer * ips;
-
-
-struct Personaje
-{
-	int id;
-	int xPosition;
-	int yPosition;
-	char c;
-};
-
-
-void serializador(struct Personaje * persona, char serializado[]){
-
-	serializado[0] = persona->id + 48; //ASCII niero
-	if(persona->xPosition < 9){
-		serializado[1] = 48;
-		serializado[2] = persona->xPosition + 48;
-	} else {
-		serializado[1] = ((int) (persona->xPosition / 10)) + 48;
-		serializado[2] = (persona->xPosition % 10) +48;
-	}
-	
-	if(persona->yPosition < 9){
-		serializado[3] = 48;
-		serializado[4] = persona->yPosition + 48;
-	} else {
-		serializado[3] = ((int) (persona->yPosition / 10)) + 48;
-		serializado[4] = (persona->yPosition % 10) +48;
-	}
-	
-	serializado[5] = persona->c;
-	
-	serializado[6] = '\0';
-	
-
-	
-}
-
-void deserializador(char personajeSerializado[], struct Personaje * recipiente){
-		/*pthread_mutex_lock(&lockParaDibujar);
-	move(10, 51);
-			//printw("%s", personajeSerializado);
-			move(11, 51);
-			printw("%d", serializado[0]);
-			refresh();
-			pthread_mutex_unlock(&lockParaDibujar);*/
-			
-			
-	recipiente->id = personajeSerializado[0] - 48;
-	recipiente->xPosition = ((personajeSerializado[1] - 48) * 10) + (personajeSerializado[2] - 48);
-	recipiente->yPosition = ((personajeSerializado[3] - 48) * 10) + (personajeSerializado[4] - 48);
-	recipiente->c = personajeSerializado[5];
-}
-
-struct Personaje personajes[3];
-
-
-void * llamador(void * vargs){
-	
-	//Por cada ip
-	//Mnda el paquete que recibio en vargs
-}
-
-void * escuchador(void * vargs){
-	void * salida;
-	while(1){
-		int c = sizeof(struct sockaddr_in);
-			
-			struct Personaje * info_jugador = malloc(sizeof(struct Personaje));
-			char mensaje[7];
-			
-			
-			if(recv(miServerSocket, mensaje, 7, 0) < 0){
-				move(10, 51);
-				printw("%s", ":(");
-			} else {
-			
-			pthread_mutex_lock(&lockParaDibujar);
-			move(10, 51);
-			printw("%s", mensaje);
-			/*move(11, 51);
-			printw("%d", serializado[0]);*/
-			refresh();
-			pthread_mutex_unlock(&lockParaDibujar);
-			
-			deserializador(mensaje, info_jugador);
-			
-			int idExterno = info_jugador->id;
-			pthread_mutex_lock(&lockParaDibujar);
-			mvaddch(personajes[idExterno].xPosition, personajes[idExterno].yPosition, ' ');	
-			personajes[idExterno].xPosition = info_jugador->xPosition;
-			personajes[idExterno].yPosition = info_jugador->yPosition;
-			mvaddch(personajes[idExterno].xPosition, personajes[idExterno].yPosition, personajes[idExterno].c);
-			refresh();
-			pthread_mutex_unlock(&lockParaDibujar);
-		
-			free(info_jugador);
-		
-		}
-	//Otros le hablan
-	//Personaje
-	//Ubica la ip
-	//Dibuja al wey basnadose en quien lo mando 
-	}
-	
-	pthread_exit( salida ); 
-	
-}
-
-
-
-void * moverseLocal(void * vargs){
-	
-	void * salida;
-	noecho();
-	int c = getch();
-	switch(c){
-		case 'w':
-		case 'W':
-			//CHecamos colisiones
-			//Gurdamos las nuevas coordenadas
-			pthread_mutex_lock(&lockParaDibujar);
-			mvaddch(personajes[miId].xPosition, personajes[miId].yPosition, ' ');	
-			personajes[miId].xPosition = personajes[miId].xPosition - 1;
-			mvaddch(personajes[miId].xPosition, personajes[miId].yPosition, personajes[miId].c);
-			pthread_mutex_unlock(&lockParaDibujar);
-			
-			break;
-		case 'a':
-		case 'A':
-			pthread_mutex_lock(&lockParaDibujar);
-			mvaddch(personajes[miId].xPosition, personajes[miId].yPosition, ' ');	
-			personajes[miId].yPosition = personajes[miId].yPosition - 1;
-			mvaddch(personajes[miId].xPosition, personajes[miId].yPosition, personajes[miId].c);
-			pthread_mutex_unlock(&lockParaDibujar);
-			break;
-		case 's':
-		case 'S':
-			pthread_mutex_lock(&lockParaDibujar);
-			mvaddch(personajes[miId].xPosition, personajes[miId].yPosition, ' ');	
-			personajes[miId].xPosition = personajes[miId].xPosition + 1;
-			mvaddch(personajes[miId].xPosition, personajes[miId].yPosition, personajes[miId].c);
-			pthread_mutex_unlock(&lockParaDibujar);
-			break;
-		case 'D':
-		case 'd':
-			pthread_mutex_lock(&lockParaDibujar);
-			mvaddch(personajes[miId].xPosition, personajes[miId].yPosition, ' ');	
-			personajes[miId].yPosition = personajes[miId].yPosition + 1;
-			mvaddch(personajes[miId].xPosition, personajes[miId].yPosition, personajes[miId].c);
-			pthread_mutex_unlock(&lockParaDibujar);
-			break;
-		default:
-			break;
-	}
-	
-	char infoAEnviar[7];
-	
-	
-	serializador(&personajes[miId], infoAEnviar);
-	
-	send(socketHermano1, infoAEnviar,sizeof(infoAEnviar), 0);
-	
-	//LLAMAR AL QUE LLAMA
-	refresh();
-	
-	pthread_exit( salida ); 
-			
-}
-
-void * inicializarMapa(void * vargs){
-	void * salida;
-	
-	char map[20][50] = {
+char map[20][50] = {
 		{'#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'},
 		{'#','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','#'},
 		{'#','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','#'},
@@ -222,10 +32,445 @@ void * inicializarMapa(void * vargs){
 		{'#','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','#'},
 		{'#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'}
 	};
+int miId = 0;
+//Eston son socket de los clientes
+int socketHermano1, socketHermano2; //Descriptor_socket
+struct sockaddr_in serverHermano1, serverHermano2; //server
+
+//Estos son el server del host
+int miServerSocket, nuevoSocketServer; //Descriptor_socket, nuevo_socket
+struct sockaddr_in miServer, clienteTemporal; //server, client
+
+pthread_mutex_t lockParaDibujar;
+pthread_mutex_t lockParaPersonajes;
+
+
+struct IPContainer{
+	char * ip1;
+	char * ip2;	
+};
+
+struct IPContainer * ips;
+
+
+struct Personaje
+{
+	int id;
+	int xPosition;
+	int yPosition;
+	char c;
+};
+
+struct Bala{
+  int id;
+  int xPosition;
+  int yPosition;
+  char c;
+};
+
+//1 - tipo de objeto: 0 - personaje, 1 - bala
+
+
+//serializador para personajes
+void serializador(struct Personaje * persona, char serializado[]){
+  serializado[0] = 0;
+
+	serializado[1] = persona->id + 48; //ASCII niero
+	if(persona->xPosition < 9){
+		serializado[2] = 48;
+		serializado[3] = persona->xPosition + 48;
+	} else {
+		serializado[2] = ((int) (persona->xPosition / 10)) + 48;
+		serializado[3] = (persona->xPosition % 10) +48;
+	}
+	
+	if(persona->yPosition < 9){
+		serializado[4] = 48;
+		serializado[5] = persona->yPosition + 48;
+	} else {
+		serializado[4] = ((int) (persona->yPosition / 10)) + 48;
+		serializado[5] = (persona->yPosition % 10) +48;
+	}
+	
+	serializado[6] = persona->c;
+	
+  serializado[7] = 0;
+  serializado[8] = 0;
+  serializado[9] = 0;
+  serializado[10] = 0;
+  serializado[11] = 0;
+	serializado[12] = '\0';
+	
+
+	 
+}
+
+void serializadorBala(struct Bala * balita, char serializado[]){
+  //Tipo de estructura
+  serializado[0] = 1;
+  //Id de la balita
+  int idTemp = balita->id;
+	serializado[1] = ((int) (idTemp / 100000)) + 48;
+  idTemp %= 100000;
+  serializado[2] = ((int) (idTemp / 10000)) + 48;
+  idTemp %= 10000;
+  serializado[3] = ((int) (idTemp / 1000)) + 48;
+  idTemp %= 1000;
+  serializado[4] = ((int) (idTemp / 100)) + 48;
+  idTemp %= 100;
+  serializado[5] = ((int) (idTemp / 10)) + 48;
+  idTemp %= 10;
+  serializado[6] = idTemp + 48; //ASCII niero
+	
+  
+  if(balita->xPosition < 9){
+		serializado[7] = 48;
+		serializado[8] = balita->xPosition + 48;
+	} else {
+		serializado[7] = ((int) (balita->xPosition / 10)) + 48;
+		serializado[8] = (balita->xPosition % 10) +48;
+	}
+	
+	if(balita->yPosition < 9){
+		serializado[9] = 48;
+		serializado[10] = balita->yPosition + 48;
+	} else {
+		serializado[9] = ((int) (balita->yPosition / 10)) + 48;
+		serializado[10] = (balita->yPosition % 10) +48;
+	}
+	
+	serializado[11] = balita->c;
+	
+	serializado[12] = '\0';
+ //Inicilaiza random srand((unsigned) time(&seconds))
+ //printf("%d", rand() % 899 + 100)
+ 
+ //time_t seconds
+ //time(&seconds)
+ //int segundos = (int) seconds
+ //int id = ((segundos * 1000) + {random}) % 1 000000
+
+  //Id de la bala son 6 digitosmitere
+  //posx, posy, caracter
+
+}
+
+void serializadorDeMuerte(struct Personaje * persona, char serializado[]){
+  serializado[0] = 2;
+
+  //Payload
+  //id del que se muere
+  serializado[1] = persona->id + 48;
+  for(int i = 2; i < 12; i++){
+    serializado[i] = 0;
+  }
+  serializado[12] = '\0';
+
+}
+struct Personaje personajes[3];
+//Solo acepta string
+//ACtua
+void deserializador(char mensajeSerializado[]){
+		/*pthread_mutex_lock(&lockParaDibujar);
+	move(10, 51);
+			//printw("%s", personajeSerializado);
+			move(11, 51);
+			printw("%d", serializado[0]);
+			refresh();
+			pthread_mutex_unlock(&lockParaDibujar);*/
+	if(mensajeSerializado[0] == 0){
+    struct Personaje * jugadorTemp = malloc(sizeof(struct Personaje));
+
+
+    
+    jugadorTemp->id = mensajeSerializado[1] - 48;
+	  jugadorTemp->xPosition = ((mensajeSerializado[2] - 48) * 10) + (mensajeSerializado[3] - 48);
+	  jugadorTemp->yPosition = ((mensajeSerializado[4] - 48) * 10) + (mensajeSerializado[5] - 48);
+	  jugadorTemp->c = mensajeSerializado[6];
+
+    int idExterno = jugadorTemp->id;
+  
+			pthread_mutex_lock(&lockParaDibujar);
+			mvaddch(personajes[idExterno].xPosition, personajes[idExterno].yPosition, ' ');	
+
+			personajes[idExterno].xPosition = jugadorTemp->xPosition;
+			personajes[idExterno].yPosition = jugadorTemp->yPosition;
+			mvaddch(personajes[idExterno].xPosition, personajes[idExterno].yPosition, personajes[idExterno].c | COLOR_PAIR(2));
+			refresh();
+			pthread_mutex_unlock(&lockParaDibujar);
+
+  }
+			
+	
+}
+
+
+
+void * escuchador(void * vargs){
+	void * salida;
+	while(1){
+		int c = sizeof(struct sockaddr_in);
+			
+			char mensaje[13];
+			
+			//Modificar el tamaño de cosas a recibir
+			if(recv(miServerSocket, mensaje, 13, 0) < 0){
+				move(10, 51);
+				printw("%s", ":(");
+			} else {
+			
+			pthread_mutex_lock(&lockParaDibujar);
+			move(10, 51);
+			printw("%s", mensaje);
+			/*move(11, 51);
+			printw("%d", serializado[0]);*/
+			refresh();
+			pthread_mutex_unlock(&lockParaDibujar);
+			
+			deserializador(mensaje);
+		
+		}
+	//Otros le hablan
+	//Personaje
+	//Ubica la ip
+	//Dibuja al wey basnadose en quien lo mando 
+	}
+	
+	pthread_exit( salida ); 
+	
+}
+
+int detectarColisiones(int posX, int posY){
+  //0 no choco
+  //1 si 
+
+  //Chequar por paredes - en map
+  if(map[posX][posY] == '#'){
+    return 1;
+  }
+
+  //Checar por personaje - personaje
+  for(int i = 0; i < 3; i++){
+    if(personajes[i].xPosition == posX){
+      if(personajes[i].yPosition == posY){
+        return 1;
+      }
+    }
+  }
+
+  return 0;
+}
+
+struct TuplaRetorno{
+  int choque;// 0 no choco, 1 choco
+  int tipo;//o jugador, 1 pared
+  int idJugador;
+};
+
+void detectarColisionesParaBala(int posX, int posY, struct TuplaRetorno * resultado){
+  //0 no choco
+  //1 si 
+  //Chequar por paredes - en map
+  if(map[posX][posY] == '#'){
+    resultado->choque = 1;
+    resultado->tipo = 1;
+    resultado->idJugador = 0;
+    return;
+  }
+
+  //Checar por personaje - personaje
+  for(int i = 0; i < 3; i++){
+    if(personajes[i].xPosition == posX){
+      if(personajes[i].yPosition == posY){
+        resultado->choque = 1;
+        resultado->tipo = 0;
+        resultado->idJugador = i;
+        return;
+      }
+    }
+  }
+
+  resultado->choque = 0;
+  resultado->tipo = 0;
+  resultado->idJugador = 0;
+  return;
+}
+
+void * controlarBala(void * vargs){
+  void * salida;
+  char direccion = * (char *) vargs;
+  //spawnea bala
+  int posXOriginal = personajes[miId].xPosition;
+  int posYOriginal = personajes[miId].yPosition;
+
+  struct Bala * balaLocal = malloc(sizeof(struct Bala));
+
+  //TODO: AQUI MURIO balaLocal->id = 
+  int existe = 1; 
+  //--------------------------------------
+  int posXNueva = posXOriginal;
+  int posYNueva = posYOriginal;
+  //i arriba
+  //j izquierda
+  //l derecha
+  //k abajo
+  while(existe == 1){
+    if(direccion == 'i'){
+      posXNueva = posXNueva -1;
+    }  else if(direccion == 'j'){
+      posYNueva = posYNueva - 1;
+    } else if(direccion == 'k'){
+      posXNueva = posXNueva + 1;  
+    } else if(direccion == 'l'){
+      posYNueva = posYNueva + 1;
+    }
+    //mueve bala
+    struct TuplaRetorno * resultado = malloc(sizeof(struct TuplaRetorno));
+    detectarColisionesParaBala(posXNueva, posYNueva, resultado);
+
+    if(resultado->choque == 1){
+      if(resultado->tipo == 0){
+        //printw("Murio:" + personaje[resultado->idJugador].id); 
+        // Desaparecer bala
+        //Mandar mensaje de quien se murio
+      } else if (resultado->tipo == 1){
+        //Desaparecer bala
+      }
+
+      existe = 0;
+    } else {
+      //Borrar bala de donde estaba
+      //Dibjar bala donde debe de estar
+    }
+    free(resultado);
+  }
+  
+  pthread_exit( salida ); 
+}
+
+void dispararBala(char direccion){
+  //i arriba
+  //j izquierda
+  //l derecha
+  //k abajo
+
+  pthread_t hiloControlador;
+	
+	pthread_create(&hiloControlador, NULL, controlarBala, &direccion);
+
+  
+  
+}
+
+void * moverseLocal(void * vargs){
+	
+	void * salida;
+	noecho();
+	int c = getch();
+	switch(c){
+		case 'w':
+		case 'W':
+			//CHecamos colisiones
+			//Gurdamos las nuevas coordenadas
+		digitalWrite(0, HIGH);
+		delay(1);
+		digitalWrite(0, LOW);
+
+      if(detectarColisiones(personajes[miId].xPosition - 1, personajes[miId].yPosition) == 0){
+        pthread_mutex_lock(&lockParaDibujar);
+        mvaddch(personajes[miId].xPosition, personajes[miId].yPosition, ' ');	
+        personajes[miId].xPosition = personajes[miId].xPosition - 1;
+        mvaddch(personajes[miId].xPosition, personajes[miId].yPosition, personajes[miId].c | COLOR_PAIR(1));
+        pthread_mutex_unlock(&lockParaDibujar);
+      }
+			
+			break;
+		case 'a':
+		case 'A':
+		digitalWrite(1, HIGH);
+		delay(1);
+		digitalWrite(1, LOW);
+
+      if(detectarColisiones(personajes[miId].xPosition, personajes[miId].yPosition -1 ) == 0){
+			pthread_mutex_lock(&lockParaDibujar);
+			mvaddch(personajes[miId].xPosition, personajes[miId].yPosition, ' ');	
+      personajes[miId].yPosition = personajes[miId].yPosition - 1;
+			mvaddch(personajes[miId].xPosition, personajes[miId].yPosition, personajes[miId].c | COLOR_PAIR(1));
+			pthread_mutex_unlock(&lockParaDibujar);
+      }
+			break;
+		case 's':
+		case 'S':
+		digitalWrite(2, HIGH);
+		delay(1);
+		digitalWrite(2, LOW);
+
+    if(detectarColisiones(personajes[miId].xPosition + 1, personajes[miId].yPosition) == 0){
+			pthread_mutex_lock(&lockParaDibujar);
+			mvaddch(personajes[miId].xPosition, personajes[miId].yPosition, ' ');	
+			personajes[miId].xPosition = personajes[miId].xPosition + 1;
+			mvaddch(personajes[miId].xPosition, personajes[miId].yPosition, personajes[miId].c | COLOR_PAIR(1));
+			pthread_mutex_unlock(&lockParaDibujar);
+      }
+			break;
+		case 'D':
+		case 'd':
+		digitalWrite(3, HIGH);
+		delay(1);
+		digitalWrite(3, LOW);
+
+    if(detectarColisiones(personajes[miId].xPosition, personajes[miId].yPosition + 1) == 0){
+			pthread_mutex_lock(&lockParaDibujar);
+			mvaddch(personajes[miId].xPosition, personajes[miId].yPosition, ' ');	
+			personajes[miId].yPosition = personajes[miId].yPosition + 1;
+			mvaddch(personajes[miId].xPosition, personajes[miId].yPosition, personajes[miId].c | COLOR_PAIR(1));
+			pthread_mutex_unlock(&lockParaDibujar);
+      }
+			break;
+    case 'I':
+    case 'i':
+      dispararBala('i');
+      break;
+    case 'J':
+    case 'j':
+      dispararBala('j');
+      break;
+    case 'K':
+    case 'k':
+      dispararBala('k');
+      break;
+    case 'L':
+    case 'l':
+      dispararBala('l');
+      break;
+		default:
+			break;
+	}
+	
+	char infoAEnviar[13];
+	
+	
+	serializador(&personajes[miId], infoAEnviar);
+	
+	send(socketHermano1, infoAEnviar,sizeof(infoAEnviar), 0);
+  send(socketHermano2, infoAEnviar,sizeof(infoAEnviar), 0);
+
+	
+	//LLAMAR ANULL
+	refresh();
+	
+	pthread_exit( salida ); 
+			
+}
+
+void * inicializarMapa(void * vargs){
+	void * salida;
+	
+	
 	for(int i = 0; i < 20; i++){
 		for(int j = 0; j<50; j++){
 			if(map[i][j] == '#'){
-				mvaddch(i, j, '#');
+				mvaddch(i, j, '#' | COLOR_PAIR(3));
 			}
 		
 		}
@@ -233,16 +478,26 @@ void * inicializarMapa(void * vargs){
 		refresh();
 	}
 	
-	mvaddch(personajes[miId].xPosition, personajes[miId].yPosition, personajes[miId].c);
+	mvaddch(personajes[miId].xPosition, personajes[miId].yPosition, personajes[miId].c | COLOR_PAIR(1));
 	refresh();
 	pthread_exit( salida ); 
 }
 
 int main(int argc, char * argv[]){
+	wiringPiSetup();
+	for(int i = 0; i < 5; i++) { pinMode(i, OUTPUT); }
+	for(int i = 0; i < 5; i++) { digitalWrite(i, LOW); }
+	
 	initscr();
 	ips = malloc(sizeof(struct IPContainer));
 	ips->ip1 = argv[1];
 	ips->ip2 = argv[2];
+	
+	//Inicializacion de colores
+	start_color();
+	init_pair(1, COLOR_GREEN, COLOR_BLACK); //JUgador local
+	init_pair(2, COLOR_CYAN, COLOR_BLACK); //JUgadores externos
+	init_pair(3, COLOR_RED, COLOR_BLACK); //Mapa
 	
 	//Conexion server propio
 	miServerSocket = socket(AF_INET, SOCK_DGRAM, 0);
@@ -326,6 +581,12 @@ int main(int argc, char * argv[]){
 	curs_set(0);
 
 	if(pthread_mutex_init(&lockParaDibujar, NULL) != 0){
+		
+		printf("Fallo el mutex");
+		return -1;
+	}
+
+  if(pthread_mutex_init(&lockParaPersonajes, NULL) != 0){
 		
 		printf("Fallo el mutex");
 		return -1;

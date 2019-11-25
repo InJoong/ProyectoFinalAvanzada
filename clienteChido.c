@@ -219,14 +219,6 @@ void * escuchador(void * vargs){
 				printw("%s", ":(");
 			} else {
 			
-			pthread_mutex_lock(&lockParaDibujar);
-			move(10, 51);
-			printw("%s", mensaje);
-			/*move(11, 51);
-			printw("%d", serializado[0]);*/
-			refresh();
-			pthread_mutex_unlock(&lockParaDibujar);
-			
 			deserializador(mensaje);
 		
 		}
